@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: angular-webapp
+    tags.datadoghq.com/env: "dotnet"
+    tags.datadoghq.com/version: "7.37.1"
+    tags.datadoghq.com/service: "dotnet-example"
+  annotations:
+    ad.datadoghq.com/webapp.logs: '[{"source":"csharp","service":"dotnet-example"}]'
+  name: angular-webapp
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: angular-webapp
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: angular-webapp
+        tags.datadoghq.com/env: "dotnet"
+        tags.datadoghq.com/version: "7.37.1"
+        tags.datadoghq.com/service: "dotnet-example"
+      annotations:
+        ad.datadoghq.com/webapp.logs: '[{"source":"csharp","service":"dotnet-example"}]'
+    spec:
+      volumes:
+        - hostPath:
+            path: /var/run/datadog/
+          name: apmsocketpath
+      containers:
+      - image: baidarbukht/dotnet-example:latest
+        name: webapp
+        imagePullPolicy: Always
+        resources: {}
+        ports:
+          - containerPort: 80 
+        volumeMounts:
+            - name: apmsocketpath
+              mountPath: /var/run/datadog
+        env:
+            - name: DD_ENV
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['tags.datadoghq.com/env']
+            - name: DD_VERSION
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['tags.datadoghq.com/version']
+            - name: DD_LOGS_INJECTION
+              value: "true"
+          
+status: {}
